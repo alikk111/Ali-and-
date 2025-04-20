@@ -1,0 +1,279 @@
+#14FF00<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>آلة حاسبة متطورة</title>
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #a29bfe;
+            --accent: #fd79a8;
+            --text: #2d3436;
+            --bg: #f5f6fa;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Tajawal', sans-serif;
+            user-select: none;
+        }
+        
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+        
+        .calculator {
+            width: 320px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+        
+        .display {
+            padding: 20px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            text-align: left;
+            min-height: 100px;
+        }
+        
+        .previous {
+            font-size: 1rem;
+            opacity: 0.8;
+            min-height: 1.2rem;
+        }
+        
+        .current {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-top: 5px;
+            direction: ltr;
+            text-align: right;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            padding: 20px;
+            background: var(--bg);
+        }
+        
+        button {
+            border: none;
+            padding: 15px;
+            font-size: 1.2rem;
+            border-radius: 12px;
+            cursor: pointer;
+            background: white;
+            color: var(--text);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s;
+        }
+        
+        button:active {
+            transform: scale(0.95);
+        }
+        
+        .operator {
+            background: var(--secondary);
+            color: white;
+        }
+        
+        .equals {
+            background: var(--primary);
+            color: white;
+            grid-column: span 2;
+        }
+        
+        .function {
+            color: var(--primary);
+        }
+        
+        .ac {
+            background: var(--accent);
+            color: white;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="calculator">
+        <div class="display">
+            <div class="previous" id="previous"></div>
+            <div class="current" id="current">0</div>
+        </div>
+        <div class="buttons">
+            <button class="function ac" data-action="clear">AC</button>
+            <button class="function" data-action="sign">+/-</button>
+            <button class="function" data-action="percent">%</button>
+            <button class="operator" data-action="divide">÷</button>
+            
+            <button data-number="7">7</button>
+            <button data-number="8">8</button>
+            <button data-number="9">9</button>
+            <button class="operator" data-action="multiply">×</button>
+            
+            <button data-number="4">4</button>
+            <button data-number="5">5</button>
+            <button data-number="6">6</button>
+            <button class="operator" data-action="subtract">−</button>
+            
+            <button data-number="1">1</button>
+            <button data-number="2">2</button>
+            <button data-number="3">3</button>
+            <button class="operator" data-action="add">+</button>
+            
+            <button data-number="0" style="grid-column: span 2;">0</button>
+            <button data-number=".">.</button>
+            <button class="equals" data-action="equals">=</button>
+        </div>
+    </div>
+
+    <script>
+        class Calculator {
+            constructor(previousElement, currentElement) {
+                this.previousElement = previousElement;
+                this.currentElement = currentElement;
+                this.clear();
+            }
+            
+            clear() {
+                this.currentOperand = '0';
+                this.previousOperand = '';
+                this.operation = undefined;
+            }
+            
+            appendNumber(number) {
+                if (number === '.' && this.currentOperand.includes('.')) return;
+                if (this.currentOperand === '0' && number !== '.') {
+                    this.currentOperand = number;
+                } else {
+                    this.currentOperand += number;
+                }
+            }
+            
+            chooseOperation(operation) {
+                if (this.currentOperand === '') return;
+                if (this.previousOperand !== '') {
+                    this.compute();
+                }
+                this.operation = operation;
+                this.previousOperand = this.currentOperand;
+                this.currentOperand = '';
+            }
+            
+            compute() {
+                let computation;
+                const prev = parseFloat(this.previousOperand);
+                const current = parseFloat(this.currentOperand);
+                if (isNaN(prev) || isNaN(current)) return;
+                
+                switch (this.operation) {
+                    case '+': computation = prev + current; break;
+                    case '−': computation = prev - current; break;
+                    case '×': computation = prev * current; break;
+                    case '÷': computation = prev / current; break;
+                    default: return;
+                }
+                
+                this.currentOperand = computation.toString();
+                this.operation = undefined;
+                this.previousOperand = '';
+            }
+            
+            updateDisplay() {
+                this.currentElement.innerText = this.currentOperand;
+                if (this.operation) {
+                    this.previousElement.innerText = 
+                        `${this.previousOperand} ${this.operation}`;
+                } else {
+                    this.previousElement.innerText = '';
+                }
+            }
+            
+            toggleSign() {
+                this.currentOperand = (parseFloat(this.currentOperand) * -1).toString();
+            }
+            
+            percentage() {
+                this.currentOperand = (parseFloat(this.currentOperand) / 100).toString();
+            }
+        }
+
+        // عناصر الواجهة
+        const numberButtons = document.querySelectorAll('[data-number]');
+        const operationButtons = document.querySelectorAll('[data-action]');
+        const previousElement = document.getElementById('previous');
+        const currentElement = document.getElementById('current');
+
+        const calculator = new Calculator(previousElement, currentElement);
+
+        // إضافة الأرقام
+        numberButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                calculator.appendNumber(button.innerText);
+                calculator.updateDisplay();
+            });
+        });
+
+        // العمليات
+        operationButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const action = button.getAttribute('data-action');
+                
+                switch (action) {
+                    case 'clear':
+                        calculator.clear();
+                        break;
+                    case 'sign':
+                        calculator.toggleSign();
+                        break;
+                    case 'percent':
+                        calculator.percentage();
+                        break;
+                    case 'equals':
+                        calculator.compute();
+                        break;
+                    default:
+                        calculator.chooseOperation(button.innerText);
+                        break;
+                }
+                
+                calculator.updateDisplay();
+            });
+        });
+
+        // دعم لوحة المفاتيح
+        document.addEventListener('keydown', (e) => {
+            if ((e.key >= '0' && e.key <= '9') || e.key === '.') {
+                calculator.appendNumber(e.key);
+                calculator.updateDisplay();
+            } else if (e.key === '+' || e.key === '-' || e.key === '*' || e.key === '/') {
+                const operation = 
+                    e.key === '*' ? '×' : 
+                    e.key === '/' ? '÷' : 
+                    e.key === '-' ? '−' : '+';
+                calculator.chooseOperation(operation);
+                calculator.updateDisplay();
+            } else if (e.key === 'Enter') {
+                calculator.compute();
+                calculator.updateDisplay();
+            } else if (e.key === 'Escape') {
+                calculator.clear();
+                calculator.updateDisplay();
+            }
+        });
+    </script>
+</body>
+</html
